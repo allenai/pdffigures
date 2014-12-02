@@ -30,6 +30,11 @@ void printUsage() {
          "prefix. Files are save to prefix-<(Table|Figure)>-<Number>.json\n");
   printf("-r, --reverse: Go through pages in reverse order\n");
   printf("-p, --page <page#>: Run only for the given page\n");
+  printf("-i, --text-as-image: Attempt to parse documents even if the "
+         "document's text is encoded as part of an embedded image (usually "
+         "caused by scanned documents that have been processed with OCR). "
+         "These documents are not handeled well at the moment so precision is "
+         "liable to be poor\n");
   printf("-h, --help show usage\n");
 }
 
@@ -40,6 +45,7 @@ int main(int argc, char **argv) {
   int onlyPage = -1;
   int reverse = false;
   int saveMistakes = false;
+  int textAsImage = false;
   std::string imagePrefix = "";
   std::string jsonPrefix = "";
   std::string finalPrefix = "";
@@ -54,13 +60,14 @@ int main(int argc, char **argv) {
       {"save-json", required_argument, NULL, 'j'},
       {"page", required_argument, NULL, 'p'},
       {"reverse", no_argument, &reverse, 'r'},
+      {"text-as-image", no_argument, &textAsImage, true},
       {"save-mistakes", no_argument, &saveMistakes, true},
       {"help", no_argument, NULL, 'h'},
       {0, 0, 0, 0}};
 
   int opt;
   int optionIndex;
-  while ((opt = getopt_long(argc, argv, "svfrmj:a:o:p:", long_options,
+  while ((opt = getopt_long(argc, argv, "svfrmij:a:o:p:", long_options,
                             &optionIndex)) != -1) {
     switch (opt) {
     case 0:
@@ -88,6 +95,9 @@ int main(int argc, char **argv) {
       break;
     case 'j':
       jsonPrefix = optarg;
+      break;
+    case 'i':
+      textAsImage = true;
       break;
     case 'h':
       printUsage();
@@ -136,6 +146,12 @@ int main(int argc, char **argv) {
     printf("Scanned %d pages\n", (int)pages.size());
   DocumentStatistics docStats = DocumentStatistics(pages, doc.get(), verbose);
 
+  if (docStats.isBodyTextGraphical() and not textAsImage) {
+    printf("Body text appears to be encoded as graphics, skipping (use -i to "
+           "parse these kinds of documents)\n");
+    return 0;
+  }
+
   std::vector<Figure> errors = std::vector<Figure>();
 
   std::map<int, std::vector<CaptionStart>> captionStarts =
@@ -183,10 +199,16 @@ int main(int argc, char **argv) {
 
     std::unique_ptr<PIX> fullRender =
         getFullRenderPix(doc.get(), onPage + 1, resolution);
-    std::unique_ptr<PIX> graphics =
-        getGraphicOnlyPix(doc.get(), onPage + 1, resolution);
     std::unique_ptr<PIX> fullRender1d(pixConvertTo1(fullRender.get(), 250));
-    std::unique_ptr<PIX> graphics1d(pixConvertTo1(graphics.get(), 250));
+
+    std::unique_ptr<PIX> graphics1d;
+    if (not docStats.isBodyTextGraphical()) {
+      std::unique_ptr<PIX> graphics =
+          getGraphicOnlyPix(doc.get(), onPage + 1, resolution);
+      graphics1d = std::unique_ptr<PIX>(pixConvertTo1(graphics.get(), 250));
+    } else {
+      graphics1d = std::unique_ptr<PIX>(pixCreateTemplate(fullRender1d.get()));
+    }
 
     // Remove graphical elements that did not show up in the original due
     // to PDF shenanigans.
@@ -195,7 +217,6 @@ int main(int argc, char **argv) {
     std::vector<Caption> captions =
         buildCaptions(captionStarts.at(onPage), docStats, pages.at(onPage),
                       graphics1d.get(), verbose);
-
     PageRegions regions =
         getPageRegions(fullRender1d.get(), pages.at(onPage), graphics1d.get(),
                        captions, docStats, onPage, verbose, showSteps, errors);

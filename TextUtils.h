@@ -34,6 +34,8 @@ public:
 
   bool isBoldCentered(double x, double x2);
 
+  bool isBodyTextGraphical();
+
 private:
   int totalWords;
   int totalLines;
@@ -47,6 +49,7 @@ private:
   bool twoColumn;
   bool rightAligned;
   bool hasPageNumbers;
+  bool imageFilled;
 
   std::unordered_map<int, int> boldCentersUp;
   std::unordered_map<int, int> boldCentersDown;

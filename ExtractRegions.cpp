@@ -131,6 +131,8 @@ std::vector<TextLine *> getTitleLines(std::vector<TextLine *> &lines, int page,
       if (nextLine == NULL) {
         titles.push_back(line);
         lines.erase(lines.begin() + i);
+      } else {
+        ++i;
       }
       continue;
     }
@@ -218,8 +220,8 @@ PageRegions getPageRegions(PIX *original, TextPage *text, PIX *graphics,
     while (word != NULL) {
       double lineX, lineY, lineX2, lineY2;
       word->getBBox(&lineX, &lineY, &lineX2, &lineY2);
-      BOX *wordBox = boxCreate(lineX + 0.5, lineY + 0.5, lineX2 - lineX + 0.5,
-                               lineY2 - lineY + 0.5);
+      BOX *wordBox = boxCreate(lineX + 1, lineY + 1, lineX2 - lineX - 1,
+                               lineY2 - lineY - 1);
       int contains;
       for (int i = 0; i < captionBoxes->n; ++i) {
         boxContains(captionBoxes->box[i], wordBox, &contains);
@@ -357,9 +359,21 @@ PageRegions getPageRegions(PIX *original, TextPage *text, PIX *graphics,
     bool isBody;
     if (graphicOverlap > 0.40) {
       isBody = false;
-    } else if (docStats.lineIsAligned(curBox->x, curBox->x + curBox->w) != 0) {
+    } else if (not docStats.isBodyTextGraphical() and
+               docStats.lineIsAligned(curBox->x, curBox->x + curBox->w) != 0) {
       isBody = true;
       if (curBox->w * curBox->h < 600) {
+        isBody = false;
+      } else if ((curBox->w < 150 and docStats.documentIsTwoColumn()) or
+                 ((curBox->w < 200 and not docStats.documentIsTwoColumn()) and
+                  (curBox->h > curBox->w * 2 or curBox->h > 50))) {
+        isBody = false;
+      } else {
+        isBody = true;
+      }
+    } else if (docStats.isBodyTextGraphical()) {
+      // Cannot rely on document level margins, use size heuristic instead
+      if (curBox->w * curBox->h < 15000) {
         isBody = false;
       } else if ((curBox->w < 150 and docStats.documentIsTwoColumn()) or
                  ((curBox->w < 200 and not docStats.documentIsTwoColumn()) and

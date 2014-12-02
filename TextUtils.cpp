@@ -196,7 +196,20 @@ DocumentStatistics::DocumentStatistics(std::vector<TextPage *> &textPages,
     printf("%s\n", rightAligned ? "Right Aligned" : "Not Right Aligned");
     printf("Analysis Complete.\n\n");
   }
+
+  // Detect if the PDF has its text also included as images
+  // by checking to see if an image fills up each page
+  imageFilled = true;
+  for (int i = 0; i < doc->getNumPages(); ++i) {
+    imageFilled = isFilledByImage(doc, i + 1) and imageFilled;
+  }
+  if (imageFilled and verbose) {
+    printf(
+        "Graphical elements appear to include body text, ignoring graphics\n");
+  }
 }
+
+bool DocumentStatistics::isBodyTextGraphical() { return imageFilled; }
 
 bool DocumentStatistics::documentIsTwoColumn() { return twoColumn; }
 
@@ -259,13 +272,12 @@ int DocumentStatistics::lineIsAlignedToTol(double x, double x2, double l_tol,
                                            double r_tol) {
   x = (double)((int)(x + 0.5));
   x2 = (double)((int)(x2 + 0.5));
-  //  printf("%0.2f, %0.2f", x, lMarginFirst);
   int score = 0;
   if ((lMarginFirst - x) <= l_tol and (x - lMarginFirst) <= r_tol) {
-    score += 1;
+    score = 1;
   } else if (twoColumn and (lMarginSecond - x) <= l_tol and
              (x - lMarginSecond) <= r_tol) {
-    score += 1;
+    score = 1;
   }
   return score;
 }
