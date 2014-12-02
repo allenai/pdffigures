@@ -151,12 +151,16 @@ double extendLineRightFromCandidates(double x2, double xLimit,
                                      std::vector<TextWord *> &yAlignedWords,
                                      std::vector<TextWord *> &lineWords) {
   bool foundCandidate = false;
+  int lastWord = -1;
   do {
     foundCandidate = false;
     for (size_t j = 0; j < yAlignedWords.size(); ++j) {
+      if (j == lastWord)
+        continue;
       double wx, wy, wx2, wy2;
       yAlignedWords.at(j)->getBBox(&wx, &wy, &wx2, &wy2);
       if ((wx - x2) < 20 and wx > (x2 - 2) and wx < xLimit) {
+        lastWord = j;
         lineWords.push_back(yAlignedWords.at(j));
         x2 = wx2;
         foundCandidate = true;
@@ -248,7 +252,6 @@ bool addLine(std::vector<TextWord *> &words, BOXA *graphicBoxes,
   if (verbose >= 2)
     printLine(yAlignedWords, "Candidates");
   double xLimit = getHorizontalLimit(yAlignedWords, paragraphEdges);
-
   std::vector<TextWord *> line = std::vector<TextWord *>();
   line.push_back(word);
   startX2 = extendLineRightFromCandidates(
