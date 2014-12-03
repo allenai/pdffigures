@@ -230,7 +230,7 @@ bool addLine(std::vector<TextWord *> &words, BOXA *graphicBoxes,
   for (size_t j = 0; j < words.size(); ++j) {
     double wx, wy, wx2, wy2;
     words.at(j)->getBBox(&wx, &wy, &wx2, &wy2);
-    if ((wy - y2) < 8 and (wy - y2) > -3 and (wx2 - x) > -5) {
+    if ((wy - y2) < 8 and (wy - y2) > -3 and (wx2 - x) > -5 and wy2 - 1 > y2) {
       yAlignedWords.push_back(words.at(j));
       if (word == NULL or wx < startX) {
         word = words.at(j);
