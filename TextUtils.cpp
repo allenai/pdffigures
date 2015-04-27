@@ -134,7 +134,7 @@ DocumentStatistics::DocumentStatistics(std::vector<TextPage *> &textPages,
       double center = doc->getPageMediaWidth(i) / 2 * (100 / 72.0);
       double x = 0, y = 0, x2 = 0, y2 = 0;
       getTextLineBB(topLine, &x, &y, &x2, &y2);
-      if (abs((x2 + x) / 2 - center) < 20) {
+      if (std::abs((x2 + x) / 2 - center) < 20) {
         TextWord *firstWord = topLine->getWords();
         std::string firstLineText = "";
         while (firstWord != NULL) {
@@ -225,7 +225,7 @@ bool DocumentStatistics::isBoldCentered(double x, double x2) {
     } else {
       columnCenter = (lMarginFirst + rMarginFirst) / 2.0;
     }
-    return (abs(center - columnCenter) <= 2);
+    return (std::abs(center - columnCenter) <= 2);
   }
   int centerUp = ((int)1 + (x + x2) / 2.0);
   int centerDown = ((int)(x + x2) / 2.0);
