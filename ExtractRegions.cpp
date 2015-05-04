@@ -124,7 +124,7 @@ std::vector<TextLine *> getTitleLines(std::vector<TextLine *> &lines, int page,
       if (nextLine != NULL) {
         double nx, ny, nx2, ny2;
         nextLine->getWords()->getBBox(&nx, &ny, &nx2, &ny2);
-        if (abs(ny - y2) < 10 or abs(nx - x2) > 20) {
+        if (std::abs(ny - y2) < 10 or std::abs(nx - x2) > 20) {
           nextLine = NULL;
         }
       }
@@ -164,7 +164,7 @@ std::vector<TextLine *> getTitleLines(std::vector<TextLine *> &lines, int page,
     for (size_t j = 0; j < boldLines.size(); ++j) {
       double lx, ly, lx2, ly2;
       getTextLineBB(boldLines.at(j), &lx, &ly, &lx2, &ly2);
-      if (abs(ly - y) <= 1 and x2 < lx and x2 - lx2 < 50) {
+      if (std::abs(ly - y) <= 1 and x2 < lx and x2 - lx2 < 50) {
         titles.push_back(boldLines.at(j));
         lines.erase(std::find(lines.begin(), lines.end(), boldLines.at(j)));
         boldLines.erase(boldLines.begin() + j);
