@@ -112,10 +112,13 @@ DocumentStatistics::DocumentStatistics(std::vector<TextPage *> &textPages,
       while (word != NULL) {
         totalWords += 1;
         fontSizeCounts[word->getFontSize()] += 1;
+        std::string fontName;
         if (word->getFontName(word->getLength() - 1) != NULL) {
-          fontNameCounts[word->getFontName(word->getLength() - 1)
-                             ->getCString()] += 1;
+          fontName = word->getFontName(word->getLength() - 1)->getCString();
+        } else {
+          fontName = "NULL";
         }
+        fontNameCounts[fontName] += 1;
         isBold = wordIsBold(word) and isBold;
         word = word->getNext();
       }
@@ -151,6 +154,7 @@ DocumentStatistics::DocumentStatistics(std::vector<TextPage *> &textPages,
     printf("%d page numbers (%d)\n", pageNumbers, (int)textPages.size());
   }
 
+  std::string modeFontName;
   modeFontName = fontNameCounts.begin()->first;
   for (auto &fnc : fontNameCounts) {
     if (fontNameCounts[modeFontName] < fnc.second) {
@@ -260,8 +264,10 @@ bool DocumentStatistics::wordIsLarge(TextWord *word) {
 double DocumentStatistics::getModeFont() { return modeFont; }
 
 bool DocumentStatistics::wordIsStandardFont(TextWord *word) {
-  return modeFontName.compare(
-             word->getFontName(word->getLength() - 1)->getCString()) == 0;
+  return (word->getFontName(word->getLength() - 1) == NULL &&
+          modeFontName == "NULL") ||
+         (modeFontName.compare(
+              word->getFontName(word->getLength() - 1)->getCString()) == 0);
 }
 
 int DocumentStatistics::lineIsAligned(double x, double x2) {
