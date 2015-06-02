@@ -240,8 +240,8 @@ extractCaptionsFromText(const std::vector<TextPage *> &textPages, bool verbose,
   ItalicOnly f4 = ItalicOnly();
   FontSizeChangeOnly f5 = FontSizeChangeOnly();
   FontChangeOnly f6 = FontChangeOnly();
-  NextWordOnly f7 = NextWordOnly();
-  LineStartOnly f8 = LineStartOnly();
+  LineStartOnly f7 = LineStartOnly();
+  NextWordOnly f8 = NextWordOnly();
   std::vector<CandidateFilter *> filters = {&f1, &f2, &f3, &f4,
                                             &f5, &f6, &f7, &f8};
 
