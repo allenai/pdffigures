@@ -113,8 +113,9 @@ double scoreBox(BOX *region, FigureType type, BOXA *bodyText,
       continue;
     float psame;
     boxOverlapFraction(region, claimedImages->box[i], &psame);
-    if (psame > 0.1)
+    if (psame > 0.1) {
       return false;
+    }
   }
 
   double score = 10;

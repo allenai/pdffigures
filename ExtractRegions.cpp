@@ -72,7 +72,6 @@ std::vector<TextLine *> getTitleLines(std::vector<TextLine *> &lines, int page,
     }
   }
 
-  // Check for page numbers and page header
   int minY = 99999;
   int topLine = -1;
   int maxY = -1;
@@ -90,6 +89,7 @@ std::vector<TextLine *> getTitleLines(std::vector<TextLine *> &lines, int page,
     }
   }
 
+  // Check for page numbers and page header
   if (docStats.isPageNumber(lines.at(botLine))) {
     titles.push_back(lines.at(botLine));
     lines.erase(lines.begin() + botLine);
@@ -342,7 +342,7 @@ PageRegions getPageRegions(PIX *original, TextPage *text, PIX *graphics,
   if (graphicBoxes->n > 0) {
     graphicBoxes = boxaSort(graphicBoxes, L_SORT_BY_Y, L_SORT_INCREASING, NULL);
     BOX *box = boxaGetBox(graphicBoxes, 0, L_CLONE);
-    if (box->h < 5 and box->w / ((double)original->w) > 0.70) {
+    if (box->y < 50 and box->h < 5 and box->w / ((double)original->w) > 0.70) {
       boxaAddBox(bodyText, box, L_COPY);
       boxaRemoveBox(graphicBoxes, 0);
       if (verbose)
