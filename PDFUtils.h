@@ -84,13 +84,9 @@ GooString *jsonSanitizeUTF8(GooString *str);
 void writeText(TextPage *page, BOX *bb, const char *name, std::ostream &output);
 
 void saveFiguresJSON(std::vector<Figure> &figures, PIX *original, double dpi,
-                     std::string prefix, std::vector<TextPage *> text);
+                     std::string prefix, std::vector<TextPage *> &text);
 
 void saveFiguresImage(std::vector<Figure> &figures, PIX *original,
                       std::string prefix);
-
-void saveFigures(std::vector<Figure> &figures, PIX *original, double dpi,
-                 std::vector<TextPage *> pages, std::string imagePrefix,
-                 std::string jsonPrefix);
 
 #endif /* defined(__figureextractor__PDFUtils__) */

@@ -325,7 +325,7 @@ void saveFiguresImage(std::vector<Figure> &figures, PIX *original,
 }
 
 void saveFiguresJSON(std::vector<Figure> &figures, PIX *original, double dpi,
-                     std::string prefix, std::vector<TextPage *> text) {
+                     std::string prefix, std::vector<TextPage *> &text) {
   for (Figure fig : figures) {
     std::string name = prefix + "-" + getFigureTypeString(fig.type) + "-" +
                        std::to_string(fig.number);
@@ -371,14 +371,4 @@ void saveFiguresJSON(std::vector<Figure> &figures, PIX *original, double dpi,
     }
     output.close();
   }
-}
-
-void saveFigures(std::vector<Figure> &figures, PIX *original, double dpi,
-                 std::vector<TextPage *> pages, std::string imagePrefix,
-                 std::string jsonPrefix) {
-  if (imagePrefix.length() != 0)
-    saveFiguresImage(figures, original, imagePrefix);
-
-  if (jsonPrefix.length() != 0)
-    saveFiguresJSON(figures, original, dpi, jsonPrefix, pages);
 }

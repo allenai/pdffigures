@@ -17,7 +17,7 @@ void printUsage() {
   printf("Usage: figureextractor [flags] </path/to/pdf>\n");
   printf("-v, --verbose\n");
   printf(
-      "-m, --save-mistakes: If combined with -f,-o,-a Save/show figures that were detected\
+      "-m, --save-mistakes: If combined with -f,-o,-a additionally save/show figures that were detected\
  but could not be extracted successfully\n");
   printf("-s, --show-steps: Display image processing steps\n");
   printf("-f, --show-final: Display pages with captions and images marked\n");
@@ -231,17 +231,21 @@ int main(int argc, char **argv) {
     if (figures.size() == 0 and verbose) {
       printf("Warning: No figures recovered");
     }
-    saveFigures(figures, fullRender.get(), resolution, pages, imagePrefix,
-                jsonPrefix);
-    if (saveMistakes)
-      saveFigures(errors, fullRender.get(), resolution, pages, imagePrefix,
-                  jsonPrefix);
 
+    if (saveMistakes) {
+      for (Figure &fig : errors) {
+        figures.push_back(fig);
+      }
+    }
+
+    if (jsonPrefix.length() != 0) {
+      saveFiguresJSON(figures, fullRender.get(), resolution, jsonPrefix, pages);
+    }
+    if (imagePrefix.length() != 0) {
+      saveFiguresImage(figures, fullRender.get(), imagePrefix);
+    }
     if (showFinal or finalPrefix.length() != 0) {
       std::unique_ptr<PIX> final(drawFigureRegions(fullRender.get(), figures));
-      if (saveMistakes) {
-        final.reset(drawFigureRegions(final.get(), errors));
-      }
       if (showFinal)
         pixDisplay(final.get(), 0, 0);
       if (finalPrefix.length() > 0)
@@ -250,7 +254,6 @@ int main(int argc, char **argv) {
             final.get(), 0, 0);
     }
     errors.clear();
-
     if (verbose)
       printf("Done\n\n");
   }
