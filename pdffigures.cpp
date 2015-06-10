@@ -295,4 +295,7 @@ int main(int argc, char **argv) {
              (jsonPrefix + ".json").c_str());
     }
   }
+  for(auto& textPage : pages) {
+    textPage->decRefCnt();
+  }
 }
