@@ -27,7 +27,7 @@ void printUsage() {
   printf("-o, --save-figures <prefix>: Save images of detected figures to "
          "prefix. Files are save to prefix-<(Table|Figure)>-<Number>.png\n");
   printf("-j, --save-json <prefix>: Save json encoding of detected figures to "
-         "prefix. Files are save to prefix-<(Table|Figure)>-<Number>.json\n");
+         "prefix. Files are save to prefix.json\n");
   printf("-r, --reverse: Go through pages in reverse order\n");
   printf("-p, --page <page#>: Run only for the given page\n");
   printf("-i, --text-as-image: Attempt to parse documents even if the "
@@ -166,6 +166,12 @@ int main(int argc, char **argv) {
 
   if (captionStarts.size() == 0) {
     printf("No captions found!");
+    if (jsonPrefix.length() != 0) {
+      // To be consistent, output a JSON file anyway
+      std::ofstream output((jsonPrefix + ".json").c_str());
+      output << "[]";
+      output.close();
+    }
     return 0;
   }
 
@@ -180,6 +186,8 @@ int main(int argc, char **argv) {
     printf("\n");
   }
 
+  std::vector<Figure> allFigures;
+  std::map<int, std::pair<int, int>> pageSizes;
   std::map<int, std::vector<CaptionStart>>::iterator start =
       captionStarts.begin();
   std::map<int, std::vector<CaptionStart>>::iterator end = captionStarts.end();
@@ -239,7 +247,10 @@ int main(int argc, char **argv) {
     }
 
     if (jsonPrefix.length() != 0) {
-      saveFiguresJSON(figures, fullRender.get(), resolution, jsonPrefix, pages);
+      for (Figure &fig : figures) {
+        allFigures.push_back(fig);
+      }
+      pageSizes[onPage] = std::pair<int, int>(fullRender->w, fullRender->h);
     }
     if (imagePrefix.length() != 0) {
       saveFiguresImage(figures, fullRender.get(), imagePrefix);
@@ -256,5 +267,32 @@ int main(int argc, char **argv) {
     errors.clear();
     if (verbose)
       printf("Done\n\n");
+  }
+
+  if (jsonPrefix.length() != 0) {
+    std::ofstream output((jsonPrefix + ".json").c_str());
+    output << "[\n";
+    for (int i = 0; i < allFigures.size(); ++i) {
+      Figure fig = allFigures[i];
+      int width, height;
+      if (fig.page != -1) {
+        width = pageSizes[fig.page].first;
+        height = pageSizes[fig.page].second;
+      } else {
+        width = -1;
+        height = -1;
+      }
+      writeFigureJSON(allFigures[i], width, height, resolution, pages, output);
+      if (i != allFigures.size() - 1) {
+        output << ",";
+      }
+      output << "\n";
+    }
+    output << "]\n";
+    output.close();
+    if (verbose) {
+      printf("Saved %d figures to %s\n", (int)allFigures.size(),
+             (jsonPrefix + ".json").c_str());
+    }
   }
 }

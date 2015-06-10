@@ -284,7 +284,7 @@ GooString *jsonSanitizeUTF8(GooString *str) {
 
 void writeText(TextPage *page, BOX *bb, const char *name,
                std::ostream &output) {
-  output << "\"" << name << "\" : [\n";
+  output << "\"" << name << "\" : [";
   TextWordList *words = page->makeWordList(gFalse);
   bool firstWord = true;
   for (int j = 0; j < words->getLength(); ++j) {
@@ -298,8 +298,11 @@ void writeText(TextPage *page, BOX *bb, const char *name,
     if (contains) {
       if (word->getText()->getLength() == 0)
         continue;
-      if (not firstWord)
+      if (not firstWord) {
         output << ",\n\t";
+      } else {
+        output << "\n\t";
+      }
       GooString *str = jsonSanitizeUTF8(word->getText());
       output << "{\"Rotation\": " << word->getRotation() << ",\"TextBB\": [";
       output << x << "," << y << "," << x2 << "," << y2 << "], \"Text\": \"";
@@ -324,51 +327,45 @@ void saveFiguresImage(std::vector<Figure> &figures, PIX *original,
   }
 }
 
-void saveFiguresJSON(std::vector<Figure> &figures, PIX *original, double dpi,
-                     std::string prefix, std::vector<TextPage *> &text) {
-  for (Figure fig : figures) {
-    std::string name = prefix + "-" + getFigureTypeString(fig.type) + "-" +
-                       std::to_string(fig.number);
-    std::ofstream output;
-    output.open((name + ".json").c_str());
-    output << "{\"Type\":\"" << getFigureTypeString(fig.type) << "\",\n";
-    output << "\"Number\": " << fig.number << ",\n";
-    output << "\"Page\": " << (fig.page + 1) << ",\n"; // Switch from 0 indexing
-    output << "\"DPI\": " << dpi << ",\n";
+void writeFigureJSON(Figure &fig, int width, int height, double dpi,
+                     std::vector<TextPage *> &text, std::ostream &output) {
+  output << "{\"Type\":\"" << getFigureTypeString(fig.type) << "\",\n";
+  output << "\"Number\": " << fig.number << ",\n";
+  output << "\"Page\": " << (fig.page + 1) << ",\n"; // Switch from 0 indexing
+  output << "\"DPI\": " << dpi << ",\n";
+  if (width != -1) {
+    output << "\"Width\": " << width << ",\n";
+    output << "\"Height\": " << height << ",\n";
+  } else {
+    output << "\"Width\": null,\n";
+    output << "\"Height\": null,\n";
+  }
 
-    if (original != NULL) {
-      output << "\"Width\": " << original->w << ",\n";
-      output << "\"Height\": " << original->h << ",\n";
-    }
-
-    TextPage *page = fig.page == -1 ? NULL : text.at(fig.page);
-    if (fig.captionBB == NULL) {
-      output << "\"CaptionBB\": null,\n";
-      output << "\"Caption\": null,\n";
-    } else {
-      output << "\"CaptionBB\": [" << fig.captionBB->x << ","
-             << fig.captionBB->y;
-      output << "," << fig.captionBB->x + fig.captionBB->w << ",";
-      output << fig.captionBB->y + fig.captionBB->h << "],\n";
-      BOX *bb = fig.captionBB;
-      GooString *caption = jsonSanitizeUTF8(
-          page->getText(bb->x, bb->y, bb->x + bb->w, bb->y + bb->h));
-      output << "\"Caption\": \"" << caption->getCString() << "\",\n";
-      delete caption;
-    }
-    if (fig.imageBB == NULL) {
-      output << "\"ImageBB\": null,\n";
-      output << "\"ImageText\" : null\n";
-      output << "}\n";
-    } else {
-      output << "\"ImageBB\": [" << fig.imageBB->x << "," << fig.imageBB->y;
-      output << "," << fig.imageBB->x + fig.imageBB->w << ","
-             << fig.imageBB->y + fig.imageBB->h;
-      output << "],\n";
-      BOX *bb = fig.imageBB;
-      writeText(page, bb, "ImageText", output);
-      output << "}\n";
-    }
-    output.close();
+  TextPage *page = fig.page == -1 ? NULL : text.at(fig.page);
+  if (fig.captionBB == NULL) {
+    output << "\"CaptionBB\": null,\n";
+    output << "\"Caption\": null,\n";
+  } else {
+    output << "\"CaptionBB\": [" << fig.captionBB->x << "," << fig.captionBB->y;
+    output << "," << fig.captionBB->x + fig.captionBB->w << ",";
+    output << fig.captionBB->y + fig.captionBB->h << "],\n";
+    BOX *bb = fig.captionBB;
+    GooString *caption = jsonSanitizeUTF8(
+        page->getText(bb->x, bb->y, bb->x + bb->w, bb->y + bb->h));
+    output << "\"Caption\": \"" << caption->getCString() << "\",\n";
+    delete caption;
+  }
+  if (fig.imageBB == NULL) {
+    output << "\"ImageBB\": null,\n";
+    output << "\"ImageText\" : null\n";
+    output << "}\n";
+  } else {
+    output << "\"ImageBB\": [" << fig.imageBB->x << "," << fig.imageBB->y;
+    output << "," << fig.imageBB->x + fig.imageBB->w << ","
+           << fig.imageBB->y + fig.imageBB->h;
+    output << "],\n";
+    BOX *bb = fig.imageBB;
+    writeText(page, bb, "ImageText", output);
+    output << "}";
   }
 }
