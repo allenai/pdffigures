@@ -40,24 +40,17 @@ CaptionCandidate constructCandidate(TextWord *word, int page, bool lineStart) {
   if (not std::regex_match(word->getText()->getCString(), wordMatch, wordRegex))
     return CaptionCandidate();
 
-  const std::regex numberRegex = std::regex("^[0-9]+$");
-  const std::regex numberSyntaxRegex = std::regex("^[0-9]+(:|\\.)$");
+  const std::regex numberRegex = std::regex("^([0-9]+)(:|\\.)$");
 
-  std::match_results<const char *> numberSyntaxMatch;
   std::match_results<const char *> numberMatch;
   std::regex_match(word->getNext()->getText()->getCString(), numberMatch,
                    numberRegex);
-  std::regex_match(word->getNext()->getText()->getCString(), numberSyntaxMatch,
-                   numberSyntaxRegex);
 
   int number;
-  std::string captionNumStr = numberSyntaxMatch[0].str();
-  if (not numberSyntaxMatch.empty()) {
-    captionNumStr = numberSyntaxMatch[0].str();
-    number = std::stoi(captionNumStr.substr(0, captionNumStr.length() - 1));
-  } else if (not numberMatch.empty()) {
+  std::string captionNumStr;
+  if (not numberMatch.empty()) {
     captionNumStr = numberMatch[0].str();
-    number = std::stoi(captionNumStr);
+    number = std::stoi(numberMatch[1].str());
   } else {
     return CaptionCandidate();
   }
