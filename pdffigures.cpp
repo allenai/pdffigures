@@ -13,8 +13,11 @@
 #include "ExtractRegions.h"
 #include "ExtractFigures.h"
 
+const std::string version = "1.0.3";
+
 void printUsage() {
   printf("Usage: figureextractor [flags] </path/to/pdf>\n");
+  printf("--version\n");
   printf("-v, --verbose\n");
   printf(
       "-m, --save-mistakes: If combined with -f,-o,-a additionally save/show figures that were detected\
@@ -52,6 +55,7 @@ int main(int argc, char **argv) {
   const double resolution = 100;
 
   const struct option long_options[] = {
+      {"version", no_argument, NULL, 0},
       {"verbose", no_argument, &verbose, true},
       {"show-steps", no_argument, &showSteps, true},
       {"show-final", no_argument, &showFinal, true},
@@ -71,6 +75,10 @@ int main(int argc, char **argv) {
                             &optionIndex)) != -1) {
     switch (opt) {
     case 0:
+      if (optionIndex == 0) {
+        printf("pdffigures version %s\n", version.c_str());
+        return 0;
+      }
       break; // flag was set
     case 'm':
       saveMistakes = true;
