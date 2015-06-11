@@ -45,8 +45,6 @@ public:
 
   Figure(CaptionStart captionStart);
 
-  Figure(FigureType type, int number);
-
   FigureType type;
   int page;
   int number;

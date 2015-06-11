@@ -28,9 +28,6 @@ Figure::Figure(CaptionStart captionStart)
     : type(captionStart.type), page(captionStart.page),
       number(captionStart.number), imageBB(NULL), captionBB(NULL) {}
 
-Figure::Figure(FigureType type, int number)
-    : type(type), page(-1), number(number), imageBB(NULL), captionBB(NULL) {}
-
 void displayBox(PIX *pix, BOX *box) {
   BOXA *tmp = boxaCreate(1);
   boxaAddBox(tmp, box, L_CLONE);
@@ -333,13 +330,8 @@ void writeFigureJSON(Figure &fig, int width, int height, double dpi,
   output << "\"Number\": " << fig.number << ",\n";
   output << "\"Page\": " << (fig.page + 1) << ",\n"; // Switch from 0 indexing
   output << "\"DPI\": " << dpi << ",\n";
-  if (width != -1) {
-    output << "\"Width\": " << width << ",\n";
-    output << "\"Height\": " << height << ",\n";
-  } else {
-    output << "\"Width\": null,\n";
-    output << "\"Height\": null,\n";
-  }
+  output << "\"Width\": " << width << ",\n";
+  output << "\"Height\": " << height << ",\n";
 
   TextPage *page = fig.page == -1 ? NULL : text.at(fig.page);
   if (fig.captionBB == NULL) {

@@ -155,14 +155,7 @@ int main(int argc, char **argv) {
   std::vector<Figure> errors = std::vector<Figure>();
 
   std::map<int, std::vector<CaptionStart>> captionStarts =
-      extractCaptionsFromText(pages, verbose, errors);
-
-  // TODO should save this images if saveMistakes is set
-  if (errors.size() > 0 and verbose) {
-    printf("%d captions seem to exist but could not be located\n",
-           (int)errors.size());
-  }
-  errors.clear();
+      extractCaptionsFromText(pages, verbose);
 
   if (captionStarts.size() == 0) {
     printf("No captions found!");

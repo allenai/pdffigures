@@ -223,8 +223,8 @@ bool anyDuplicates(const CandidateCollection &collection) {
 } // End namespace
 
 std::map<int, std::vector<CaptionStart>>
-extractCaptionsFromText(const std::vector<TextPage *> &textPages, bool verbose,
-                        std::vector<Figure> &errors) {
+extractCaptionsFromText(const std::vector<TextPage *> &textPages,
+                        bool verbose) {
   CandidateCollection candidates = collectCandidates(textPages);
   // In order to be considered
   ColonOnly f1 = ColonOnly();
@@ -267,39 +267,30 @@ extractCaptionsFromText(const std::vector<TextPage *> &textPages, bool verbose,
   }
 
   // Check for non consecutive figures / tables, add any found as errors
-  int maxTable = 0;
-  int maxFigure = 0;
-  int nTables = 0;
-  int nFigures = 0;
-  for (auto &ccs : candidates) {
-    if (ccs.first > 0) {
-      nFigures++;
-      maxFigure = std::max(ccs.first, maxFigure);
-    } else {
-      nTables++;
-      maxTable = std::max(-ccs.first, maxTable);
-    }
-  }
-  if (verbose and maxTable != nTables) {
-    printf("Warning: Max table number found was %d, but only found %d table "
-           "captions!\n",
-           maxTable, nTables);
-  }
-  if (verbose and maxFigure != nFigures) {
-    printf("Warning: Max figure number found was %d, but only found %d figure "
-           "captions!\n",
-           maxFigure, nFigures);
-  }
-  if ((nFigures + nTables) != (maxTable + maxFigure)) {
-    for (int i = 1; i <= maxFigure; ++i) {
-      if (candidates.find(i) == candidates.end()) {
-        errors.push_back(Figure(FIGURE, i));
+  if (verbose) {
+    int maxTable = 0;
+    int maxFigure = 0;
+    int nTables = 0;
+    int nFigures = 0;
+    for (auto &ccs : candidates) {
+      if (ccs.first > 0) {
+        nFigures++;
+        maxFigure = std::max(ccs.first, maxFigure);
+      } else {
+        nTables++;
+        maxTable = std::max(-ccs.first, maxTable);
       }
     }
-    for (int i = 1; i <= maxTable; ++i) {
-      if (candidates.find(-i) == candidates.end()) {
-        errors.push_back(Figure(TABLE, i));
-      }
+    if (maxTable != nTables) {
+      printf("Warning: Max table number found was %d, but only found %d table "
+             "captions!\n",
+             maxTable, nTables);
+    }
+    if (maxFigure != nFigures) {
+      printf(
+          "Warning: Max figure number found was %d, but only found %d figure "
+          "captions!\n",
+          maxFigure, nFigures);
     }
   }
 
@@ -320,7 +311,6 @@ extractCaptionsFromText(const std::vector<TextPage *> &textPages, bool verbose,
                getFigureTypeString(captionOptions->at(0).type),
                captionOptions->at(0).number);
       }
-      errors.push_back(Figure(it->first > 0 ? FIGURE : TABLE, abs(it->first)));
     } else {
       throw std::runtime_error("Should never filter out all candidates!");
     }
