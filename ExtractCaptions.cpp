@@ -40,7 +40,7 @@ CaptionCandidate constructCandidate(TextWord *word, int page, bool lineStart) {
   if (not std::regex_match(word->getText()->getCString(), wordMatch, wordRegex))
     return CaptionCandidate();
 
-  const std::regex numberRegex = std::regex("^([0-9]+)(:|\\.)$");
+  const std::regex numberRegex = std::regex("^([0-9]+)(:|\\.)?$");
 
   std::match_results<const char *> numberMatch;
   std::regex_match(word->getNext()->getText()->getCString(), numberMatch,
