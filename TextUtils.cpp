@@ -154,7 +154,6 @@ DocumentStatistics::DocumentStatistics(std::vector<TextPage *> &textPages,
     printf("%d page numbers (%d)\n", pageNumbers, (int)textPages.size());
   }
 
-  std::string modeFontName;
   modeFontName = fontNameCounts.begin()->first;
   for (auto &fnc : fontNameCounts) {
     if (fontNameCounts[modeFontName] < fnc.second) {

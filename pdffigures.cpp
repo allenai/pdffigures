@@ -13,7 +13,7 @@
 #include "ExtractRegions.h"
 #include "ExtractFigures.h"
 
-const std::string version = "1.0.3";
+const std::string version = "1.0.4";
 
 void printUsage() {
   printf("Usage: figureextractor [flags] </path/to/pdf>\n");
