@@ -12,30 +12,38 @@ typedef int FigureId;
 class CaptionCandidate {
 public:
   CaptionCandidate()
-      : word(NULL), lineStart(false), type(FIGURE), number(-1), page(-1),
-        periodMatch(false), colonMatch(false) {}
+      : word(NULL), lineStart(false), blockStart(false), type(FIGURE),
+        number(-1), page(-1), periodMatch(false), colonMatch(false),
+        caps(false), abbreviated(false) {}
 
-  CaptionCandidate(TextWord *word, bool lineStart, FigureType type, int number,
-                   int page, bool periodMatch, bool colonMatch)
-      : word(word), lineStart(lineStart), type(type), number(number),
-        page(page), periodMatch(periodMatch), colonMatch(colonMatch) {}
+  CaptionCandidate(TextWord *word, bool lineStart, bool blockStart,
+                   FigureType type, int number, int page, bool periodMatch,
+                   bool colonMatch, bool caps, bool abbreviated)
+      : word(word), lineStart(lineStart), blockStart(blockStart), type(type),
+        number(number), page(page), periodMatch(periodMatch),
+        colonMatch(colonMatch), caps(caps), abbreviated(abbreviated) {}
 
   FigureId getId() { return number * (type == FIGURE ? 1 : -1); }
 
   TextWord *word;
   bool lineStart;
+  bool blockStart;
   FigureType type;
   int number;
   int page;
   bool periodMatch;
   bool colonMatch;
+  bool caps;
+  bool abbreviated;
 };
 
-CaptionCandidate constructCandidate(TextWord *word, int page, bool lineStart) {
+CaptionCandidate constructCandidate(TextWord *word, int page, bool lineStart,
+                                    bool blockStart) {
   if (word->getNext() == NULL)
     return CaptionCandidate();
 
-  const std::regex wordRegex = std::regex("^(Figure|Fig|FIG|Table)$");
+  const std::regex wordRegex =
+      std::regex("^(Figure|(FIG)|(Fig\\.)||Fig|Table)$");
   std::match_results<const char *> wordMatch;
   if (not std::regex_match(word->getText()->getCString(), wordMatch, wordRegex))
     return CaptionCandidate();
@@ -57,12 +65,13 @@ CaptionCandidate constructCandidate(TextWord *word, int page, bool lineStart) {
   bool periodMatch = false, colonMatch = false;
   if (captionNumStr.at(captionNumStr.length() - 1) == ':') {
     colonMatch = true;
-  } else {
+  } else if (captionNumStr.at(captionNumStr.length() - 1) == '.') {
     periodMatch = true;
   }
   FigureType type = wordMatch[0].str().at(0) == 'T' ? TABLE : FIGURE;
-  return CaptionCandidate(word, lineStart, type, number, page, periodMatch,
-                          colonMatch);
+  return CaptionCandidate(word, lineStart, blockStart, type, number, page,
+                          periodMatch, colonMatch, wordMatch[2].length() > 0,
+                          wordMatch[3].length() > 0);
 }
 
 // Maps ids -> all candidates that have that id
@@ -77,12 +86,14 @@ CandidateCollection collectCandidates(const std::vector<TextPage *> &pages) {
     while (flow != NULL) {
       TextBlock *block = flow->getBlocks();
       while (block != NULL) {
+        bool blockStart = true;
         TextLine *line = block->getLines();
         while (line != NULL) {
           TextWord *word = line->getWords();
           bool lineStart = true;
           while (word != NULL) {
-            CaptionCandidate cc = constructCandidate(word, i, lineStart);
+            CaptionCandidate cc =
+                constructCandidate(word, i, lineStart, blockStart);
             if (cc.word != NULL) {
               int id = cc.getId();
               if (collection.find(id) == collection.end()) {
@@ -95,6 +106,7 @@ CandidateCollection collectCandidates(const std::vector<TextPage *> &pages) {
             lineStart = false;
           }
           line = line->getNext();
+          blockStart = false;
         }
         block = block->getNext();
       }
@@ -128,6 +140,26 @@ public:
   bool check(const CaptionCandidate &cc) { return cc.periodMatch; }
 };
 
+class AbbrevFiguresOnly : public CandidateFilter {
+public:
+  AbbrevFiguresOnly() : CandidateFilter("Only Abbreviated Figures", true) {}
+  bool check(const CaptionCandidate &cc) {
+    return cc.type == TABLE || cc.abbreviated;
+  }
+};
+
+class AllCapsFiguresOnly : public CandidateFilter {
+public:
+  AllCapsFiguresOnly() : CandidateFilter("Only All Caps Figures", true) {}
+  bool check(const CaptionCandidate &cc) { return cc.type == TABLE || cc.caps; }
+};
+
+class BlockStartOnly : public CandidateFilter {
+public:
+  BlockStartOnly() : CandidateFilter("Block Start Only", false) {}
+  bool check(const CaptionCandidate &cc) { return cc.blockStart; }
+};
+
 class LineStartOnly : public CandidateFilter {
 public:
   LineStartOnly() : CandidateFilter("Line Start Only", false) {}
@@ -154,29 +186,11 @@ public:
   }
 };
 
-class FontSizeChangeOnly : public CandidateFilter {
+class NoNextWord : public CandidateFilter {
 public:
-  FontSizeChangeOnly() : CandidateFilter("Font Size Change Only", true) {}
+  NoNextWord() : CandidateFilter("No Next Word", true) {}
   bool check(const CaptionCandidate &cc) {
-    TextWord *next = cc.word->getNext()->getNext();
-    if (next == NULL)
-      return false;
-    return next->getFontSize() != cc.word->getFontSize();
-  }
-};
-
-class FontChangeOnly : public CandidateFilter {
-public:
-  FontChangeOnly() : CandidateFilter("Font Change Only", true) {}
-  bool check(const CaptionCandidate &cc) {
-    TextWord *next = cc.word->getNext()->getNext();
-    if (next == NULL)
-      return false;
-    GooString *nextFontName =
-        next->getFontInfo(next->getLength() - 1)->getFontName();
-    GooString *fontName =
-        cc.word->getFontInfo(cc.word->getLength() - 1)->getFontName();
-    return fontName->cmp(nextFontName) != 0;
+    return cc.word->getNext()->getNext() == NULL;
   }
 };
 
@@ -231,12 +245,14 @@ extractCaptionsFromText(const std::vector<TextPage *> &textPages,
   PeriodOnly f2 = PeriodOnly();
   BoldOnly f3 = BoldOnly();
   ItalicOnly f4 = ItalicOnly();
-  FontSizeChangeOnly f5 = FontSizeChangeOnly();
-  FontChangeOnly f6 = FontChangeOnly();
-  LineStartOnly f7 = LineStartOnly();
-  NextWordOnly f8 = NextWordOnly();
-  std::vector<CandidateFilter *> filters = {&f1, &f2, &f3, &f4,
-                                            &f5, &f6, &f7, &f8};
+  AllCapsFiguresOnly f5 = AllCapsFiguresOnly();
+  AbbrevFiguresOnly f6 = AbbrevFiguresOnly();
+  NoNextWord f7 = NoNextWord();
+  BlockStartOnly f8 = BlockStartOnly();
+  LineStartOnly f9 = LineStartOnly();
+  NextWordOnly f10 = NextWordOnly();
+  std::vector<CandidateFilter *> filters = {&f1, &f2, &f3, &f4, &f5,
+                                            &f6, &f7, &f8, &f9, &f10};
 
   if (verbose) {
     printf("Scanning for captions...\n");
@@ -301,18 +317,24 @@ extractCaptionsFromText(const std::vector<TextPage *> &textPages,
   for (CandidateCollection::iterator it = candidates.begin();
        it != candidates.end();) {
     std::vector<CaptionCandidate> *captionOptions = it->second.get();
-    if (captionOptions->size() == 1) {
-      CaptionCandidate cc = captionOptions->at(0);
-      output[cc.page].push_back(
-          CaptionStart(cc.page, cc.number, cc.word, cc.type));
-    } else if (captionOptions->size() > 1) {
-      if (verbose) {
-        printf("Unable to filter out duplicate candidates for %s%d\n",
+    if (captionOptions->size() <= 2) {
+      if (verbose && captionOptions->size() == 2) {
+        // This might be due to a continued Figure, but even if it is a mistake
+        // we can hope the following steps will not find any figure regions
+        // for the incorrect candidate we selected
+        printf("Two candidates for %s%d, keeping both\n",
+               getFigureTypeString(captionOptions->at(0).type),
+               captionOptions->at(0).number);
+        for (CaptionCandidate cc : *captionOptions) {
+          output[cc.page].push_back(
+              CaptionStart(cc.page, cc.number, cc.word, cc.type));
+        }
+      } else if (verbose && captionOptions->size() > 0) {
+        printf("%d candidates for %s%d, excluding them\n",
+               (int)captionOptions->size(),
                getFigureTypeString(captionOptions->at(0).type),
                captionOptions->at(0).number);
       }
-    } else {
-      throw std::runtime_error("Should never filter out all candidates!");
     }
     candidates.erase(it++);
   }
