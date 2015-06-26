@@ -325,16 +325,16 @@ extractCaptionsFromText(const std::vector<TextPage *> &textPages,
         printf("Two candidates for %s%d, keeping both\n",
                getFigureTypeString(captionOptions->at(0).type),
                captionOptions->at(0).number);
-        for (CaptionCandidate cc : *captionOptions) {
-          output[cc.page].push_back(
-              CaptionStart(cc.page, cc.number, cc.word, cc.type));
-        }
-      } else if (verbose && captionOptions->size() > 0) {
-        printf("%d candidates for %s%d, excluding them\n",
-               (int)captionOptions->size(),
-               getFigureTypeString(captionOptions->at(0).type),
-               captionOptions->at(0).number);
       }
+      for (CaptionCandidate cc : *captionOptions) {
+        output[cc.page].push_back(
+            CaptionStart(cc.page, cc.number, cc.word, cc.type));
+      }
+    } else if (verbose && captionOptions->size() > 0) {
+      printf("%d candidates for %s%d, excluding them\n",
+             (int)captionOptions->size(),
+             getFigureTypeString(captionOptions->at(0).type),
+             captionOptions->at(0).number);
     }
     candidates.erase(it++);
   }
