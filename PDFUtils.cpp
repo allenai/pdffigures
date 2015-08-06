@@ -103,12 +103,10 @@ class SplashGraphicsOutputDev : public SplashOutputDev {
 public:
   SplashGraphicsOutputDev(SplashColorMode colorModeA, int bitmapRowPadA,
                           GBool reverseVideoA, SplashColorPtr paperColorA,
-                          GBool bitmapTopDownA, GBool allowAntialiasA,
-                          SplashThinLineMode thinLineMode,
+                          GBool bitmapTopDownA, SplashThinLineMode thinLineMode,
                           GBool overprintPreviewA)
       : SplashOutputDev(colorModeA, bitmapRowPadA, reverseVideoA, paperColorA,
-                        bitmapTopDownA, allowAntialiasA, thinLineMode,
-                        overprintPreviewA) {}
+                        bitmapTopDownA, thinLineMode, overprintPreviewA) {}
 
   GBool useDrawChar() { return gTrue; }
 
@@ -186,7 +184,7 @@ PIX *getPix(SplashOutputDev *splashOut, PDFDoc *doc, int page, double dpi) {
 std::unique_ptr<PIX> getFullRenderPix(PDFDoc *doc, int page, double dpi) {
   SplashColor paperColor = {255, 255, 255};
   SplashOutputDev *splashOut =
-      new SplashOutputDev(splashModeMono8, 4, gFalse, paperColor, gTrue, gTrue,
+      new SplashOutputDev(splashModeMono8, 4, gFalse, paperColor, gTrue,
                           splashThinLineDefault, gTrue);
   std::unique_ptr<PIX> output(getPix(splashOut, doc, page, dpi));
   delete splashOut;
@@ -197,7 +195,7 @@ std::unique_ptr<PIX> getGraphicOnlyPix(PDFDoc *doc, int page, double dpi) {
   SplashColor paperColor = {255, 255, 255};
   SplashGraphicsOutputDev *splashOut =
       new SplashGraphicsOutputDev(splashModeMono8, 4, gFalse, paperColor, gTrue,
-                                  gTrue, splashThinLineDefault, gTrue);
+                                  splashThinLineDefault, gTrue);
   std::unique_ptr<PIX> output(getPix(splashOut, doc, page, dpi));
   delete splashOut;
   return output;
