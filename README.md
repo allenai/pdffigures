@@ -22,6 +22,8 @@ On Ubuntu these dependencies can be install through apt-get:
 
 ```sudo apt-get install libpoppler-dev libleptonica-dev```
 
+pdffigures has been tested with poppler 3.4 and leptonica 1.72
+
 pdffigures uses std::regex, therefore compiling on Ubuntu requires g++ >= 4.9
 
 ### Support
