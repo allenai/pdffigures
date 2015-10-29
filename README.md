@@ -14,17 +14,21 @@ pdffigures is a command line tool that can be used to extract figures, tables, a
 See ```pdffigures -help``` for a list of additional command line arguements.
 
 ### Dependencies
-pdffigures requires [leptonica](http://www.leptonica.com/) and [poppler](http://poppler.freedesktop.org/) to be installed. On MAC both of these dependencies can be installl through homebrew:
+pdffigures requires [leptonica](http://www.leptonica.com/) and [poppler](http://poppler.freedesktop.org/) to be installed. On MAC both of these dependencies can be installed through homebrew:
 
 ```brew install leptonica poppler```
 
-On Ubuntu these dependencies can be install through apt-get:
+On Ubuntu 14.04 these dependencies can be installed through apt-get:
 
 ```sudo apt-get install libpoppler-dev libleptonica-dev```
 
-pdffigures has been tested with poppler 3.4 and leptonica 1.72
+On Ubuntu 15.04:
+
+```sudo apt-get install libpoppler-private-dev libleptonica-dev```
+
+pdffigures has been tested with poppler 3.0,3.4,3.7, although I expect most other versions to be compatible, and leptonica 1.72
 
 pdffigures uses std::regex, therefore compiling on Ubuntu requires g++ >= 4.9
 
 ### Support
-pdffigures has been tested on MAC OS X 10.9 and Ubuntu 14.04, Windows is not supported.
+pdffigures has been tested on MAC OS X 10.9 and 10.10, Ubuntu 14.04 and 15.04, Windows is not supported.
