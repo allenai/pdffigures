@@ -105,47 +105,44 @@ public:
                           GBool reverseVideoA, SplashColorPtr paperColorA)
       : SplashOutputDev(colorModeA, bitmapRowPadA, reverseVideoA, paperColorA) {}
 
-  GBool useDrawChar() { return gTrue; }
+  GBool useDrawChar() override { return gTrue; }
 
-  GBool interpretType3Chars() { return gFalse; }
-
-  void drawType3Glyph(GfxState *state, T3FontCache *t3Font, T3FontCacheTag *,
-                      Guchar *data) {}
+  GBool interpretType3Chars() override { return gFalse; }
 
   void type3D1(GfxState *state, double wx, double wy, double llx, double lly,
-               double urx, double ury) {}
+               double urx, double ury) override {}
 
-  void beginStringOp(GfxState *state) {}
+  void beginStringOp(GfxState *state) override {}
 
-  void endStringOp(GfxState *state) {}
+  void endStringOp(GfxState *state) override {}
 
-  void beginString(GfxState *state, GooString *str) {}
+  void beginString(GfxState *state, GooString *str) override {}
 
-  void endString(GfxState *state) {}
+  void endString(GfxState *state) override {}
 
   void drawChar(GfxState *state, double x, double y, double dx, double dy,
                 double originX, double originY, CharCode code, int nBytes,
-                Unicode *u, int uLen) {}
+                Unicode *u, int uLen) override {}
 
   void drawString(GfxState *state, GooString *str) override {}
 
   GBool beginType3Char(GfxState *state, double x, double y, double dx,
-                       double dy, CharCode code, Unicode *u, int uLen) {
+                       double dy, CharCode code, Unicode *u, int uLen) override {
     // TODO decide if true is correct
     return gFalse;
   }
 
-  void endType3Char(GfxState *state) {}
+  void endType3Char(GfxState *state) override {}
 
-  void beginTextObject(GfxState *state) {}
+  void beginTextObject(GfxState *state) override {}
 
-  void endTextObject(GfxState *state) {}
+  void endTextObject(GfxState *state) override {}
 
-  void incCharCount(int nChars) {}
+  void incCharCount(int nChars) override {}
 
-  void beginActualText(GfxState *state, GooString *text) {}
+  void beginActualText(GfxState *state, GooString *text) override {}
 
-  void endActualText(GfxState *state) {}
+  void endActualText(GfxState *state) override {}
 };
 
 PIX *bitmapToPix(SplashBitmap *bitmap) {
