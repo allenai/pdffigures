@@ -273,7 +273,7 @@ int main(int argc, char **argv) {
   if (jsonPrefix.length() != 0) {
     std::ofstream output((jsonPrefix + ".json").c_str());
     output << "[\n";
-    for (int i = 0; i < allFigures.size(); ++i) {
+    for (size_t i = 0; i < allFigures.size(); ++i) {
       Figure fig = allFigures[i];
       int width, height;
       if (fig.page != -1) {
