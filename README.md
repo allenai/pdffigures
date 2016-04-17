@@ -22,7 +22,7 @@ On Ubuntu 14.04 these dependencies can be installed through apt-get:
 
 ```sudo apt-get install libpoppler-dev libleptonica-dev```
 
-On Ubuntu 15.04:
+On Ubuntu >= 15.04:
 
 ```sudo apt-get install libpoppler-private-dev libleptonica-dev```
 
@@ -32,3 +32,6 @@ pdffigures uses std::regex, therefore compiling on Ubuntu requires g++ >= 4.9
 
 ### Support
 pdffigures has been tested on MAC OS X 10.9 and 10.10, Ubuntu 14.04, 15.04, and 15.10, Windows is not supported.
+
+### Troubleshooting
+If you are having trouble with pkg-config and poppler, you might have multiple poppler.pc on your computer. On `Ubuntu 15.10`, a user found one in `/usr/lib/x86_64-linux-gnu/pkgconfig/` and one in `/usr/local/lib/pkgconfig/`. Make sure to choose the appropriate one (by adding the appropriate path to the `PKG_CONFIG_PATH` variable in your `bashrc`.)
