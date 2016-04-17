@@ -31,4 +31,4 @@ pdffigures has been tested with poppler 3.0,3.4,3.7, although I expect most othe
 pdffigures uses std::regex, therefore compiling on Ubuntu requires g++ >= 4.9
 
 ### Support
-pdffigures has been tested on MAC OS X 10.9 and 10.10, Ubuntu 14.04 and 15.04, Windows is not supported.
+pdffigures has been tested on MAC OS X 10.9 and 10.10, Ubuntu 14.04, 15.04, and 15.10, Windows is not supported.
