@@ -1,6 +1,8 @@
 pdffigures
 ==========
-pdffigures is a command line tool that can be used to extract figures, tables, and captions from scholarly documents. See the [project website](http://pdffigures.allenai.org).
+pdffigures is a command line tool that can be used to extract figures, tables, and captions from scholarly documents. See the [project website](http://pdffigures.allenai.org). 
+
+NOTE: an updated version of this tool written in Scala is available [here](https://github.com/allenai/pdffigures2). The updated version is expected to be generally superior to this one, especially on less standard papers, however there are some cases where this version will run faster (see this [paper](https://ai2-website.s3.amazonaws.com/publications/pdf2.0.pdf) for more details).
 
 ### Usage
 1. Compile the command line tools:
