@@ -29,7 +29,7 @@ void printUsage() {
          "prefix-<page#>.png\n");
   printf("-o, --save-figures <prefix>: Save images of detected figures to "
          "prefix. Files are save to prefix-<(Table|Figure)>-<Number>.png\n");
-  printf("-c, --save-color-images: Additionally save color images for figures and tables."
+  printf("-c, --save-color-images <prefix>: Save color images with a high resolution for figures and tables."
     "Files are save to prefix-<(Table|Figure)>-c<Number>.png\n");
   printf("-j, --save-json <prefix>: Save json encoding of detected figures to "
          "prefix. Files are save to prefix.json\n");
@@ -51,8 +51,8 @@ int main(int argc, char **argv) {
   int reverse = false;
   int saveMistakes = false;
   int textAsImage = false;
-  int saveColorImage = false;
   std::string imagePrefix = "";
+  std::string colorImagePrefix = "";
   std::string jsonPrefix = "";
   std::string finalPrefix = "";
   const double resolution = 100;
@@ -65,7 +65,7 @@ int main(int argc, char **argv) {
       {"show-final", no_argument, &showFinal, true},
       {"save-final", required_argument, NULL, 'a'},
       {"save-figures", required_argument, NULL, 'o'},
-      {"save-color-images", no_argument, &saveColorImage, true},
+      {"save-color-images", required_argument, NULL, 'c'},
       {"save-json", required_argument, NULL, 'j'},
       {"page", required_argument, NULL, 'p'},
       {"reverse", no_argument, &reverse, 'r'},
@@ -76,7 +76,7 @@ int main(int argc, char **argv) {
 
   int opt;
   int optionIndex;
-  while ((opt = getopt_long(argc, argv, "svfrmicj:a:o:p:", long_options,
+  while ((opt = getopt_long(argc, argv, "svfrmic:j:a:o:p:", long_options,
                             &optionIndex)) != -1) {
     switch (opt) {
     case 0:
@@ -104,7 +104,7 @@ int main(int argc, char **argv) {
       imagePrefix = optarg;
       break;
     case 'c':
-      saveColorImage = true;
+      colorImagePrefix = optarg;
       break;
     case 'a':
       finalPrefix = optarg;
@@ -137,7 +137,8 @@ int main(int argc, char **argv) {
   }
 
   if (not showFinal and not showSteps and finalPrefix.length() == 0 and
-      not verbose and imagePrefix.length() == 0 and jsonPrefix.length() == 0) {
+      not verbose and imagePrefix.length() == 0 and jsonPrefix.length() == 0 and
+      colorImagePrefix.length() == 0) {
     printf("No output requested\n");
     printUsage();
     return 1;
@@ -227,8 +228,10 @@ int main(int argc, char **argv) {
       graphics1d = std::unique_ptr<PIX>(pixCreateTemplate(fullRender1d.get()));
     }
 
-    std::unique_ptr<PIX> fullColorRender =
-        getFullColorRenderPix(doc.get(), onPage + 1, resolution * resMultiply);
+    std::unique_ptr<PIX> fullColorRender;
+    if(colorImagePrefix.length() != 0){
+      fullColorRender = getFullColorRenderPix(doc.get(), onPage + 1, resolution * resMultiply);
+    }
 
     // Remove graphical elements that did not show up in the original due
     // to PDF shenanigans.
@@ -267,8 +270,8 @@ int main(int argc, char **argv) {
     if (imagePrefix.length() != 0) {
       saveFiguresImage(figures, fullRender.get(), imagePrefix);
     }
-    if (saveColorImage && imagePrefix.length() != 0) {
-      saveFiguresFullColorImage(figures, fullColorRender.get(), imagePrefix, resMultiply);
+    if (colorImagePrefix.length() != 0) {
+      saveFiguresFullColorImage(figures, fullColorRender.get(), colorImagePrefix, resMultiply);
     }
     if (showFinal or finalPrefix.length() != 0) {
       std::unique_ptr<PIX> final(drawFigureRegions(fullRender.get(), figures));
