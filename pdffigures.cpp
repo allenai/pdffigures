@@ -228,11 +228,6 @@ int main(int argc, char **argv) {
       graphics1d = std::unique_ptr<PIX>(pixCreateTemplate(fullRender1d.get()));
     }
 
-    std::unique_ptr<PIX> fullColorRender;
-    if(colorImagePrefix.length() != 0){
-      fullColorRender = getFullColorRenderPix(doc.get(), onPage + 1, resolution * resMultiply);
-    }
-
     // Remove graphical elements that did not show up in the original due
     // to PDF shenanigans.
     pixAnd(graphics1d.get(), graphics1d.get(), fullRender1d.get());
@@ -270,7 +265,9 @@ int main(int argc, char **argv) {
     if (imagePrefix.length() != 0) {
       saveFiguresImage(figures, fullRender.get(), imagePrefix);
     }
+    std::unique_ptr<PIX> fullColorRender;
     if (colorImagePrefix.length() != 0) {
+      fullColorRender = getFullColorRenderPix(doc.get(), onPage + 1, resolution * resMultiply);
       saveFiguresFullColorImage(figures, fullColorRender.get(), colorImagePrefix, resMultiply);
     }
     if (showFinal or finalPrefix.length() != 0) {
