@@ -159,6 +159,22 @@ PIX *bitmapToPix(SplashBitmap *bitmap) {
   return pix;
 }
 
+PIX *fullColorBitmapToPix(SplashBitmap *bitmap) {
+  if (bitmap->getMode() != splashModeRGB8)
+    return NULL;
+  PIX *pix = pixCreate(bitmap->getWidth(), bitmap->getHeight(), 32);
+  SplashColorPtr pixel = new Guchar[3];
+  for (int x = 0; x < bitmap->getWidth(); ++x) {
+    for (int y = 0; y < bitmap->getHeight(); ++y) {
+      bitmap->getPixel(x, y, pixel);
+      pixSetPixel(pix, x, y, 
+        ((pixel[0] & 0xff) << 24) + ((pixel[1] & 0xff) << 16) +
+        ((pixel[2] & 0xff) << 8) + bitmap->getAlpha(x, y));
+    }
+  }
+  return pix;
+}
+
 bool isFilledByImage(PDFDoc *doc, int page) {
   int dpi = 72;
   ImageDetectDev *dev = new ImageDetectDev(doc->getPageMediaWidth(page) - 10,
@@ -175,6 +191,12 @@ PIX *getPix(SplashOutputDev *splashOut, PDFDoc *doc, int page, double dpi) {
   return bitmapToPix(splashOut->getBitmap());
 }
 
+PIX *getFullColorPix(SplashOutputDev *splashOut, PDFDoc *doc, int page, double dpi) {
+  splashOut->startDoc(doc);
+  doc->displayPage(splashOut, page, dpi, dpi, 0, gTrue, gFalse, gFalse);
+  return fullColorBitmapToPix(splashOut->getBitmap());
+}
+
 std::unique_ptr<PIX> getFullRenderPix(PDFDoc *doc, int page, double dpi) {
   SplashColor paperColor = {255, 255, 255};
   SplashOutputDev *splashOut =
@@ -189,6 +211,15 @@ std::unique_ptr<PIX> getGraphicOnlyPix(PDFDoc *doc, int page, double dpi) {
   SplashGraphicsOutputDev *splashOut =
       new SplashGraphicsOutputDev(splashModeMono8, 4, gFalse, paperColor);
   std::unique_ptr<PIX> output(getPix(splashOut, doc, page, dpi));
+  delete splashOut;
+  return output;
+}
+
+std::unique_ptr<PIX> getFullColorRenderPix(PDFDoc *doc, int page, double dpi) {
+  SplashColor paperColor = {255, 255, 255};
+  SplashOutputDev *splashOut =
+    new SplashOutputDev(splashModeRGB8, 4, gFalse, paperColor);
+  std::unique_ptr<PIX> output(getFullColorPix(splashOut, doc, page, dpi));
   delete splashOut;
   return output;
 }
@@ -310,6 +341,29 @@ void saveFiguresImage(std::vector<Figure> &figures, PIX *original,
     if (fig.imageBB != NULL) {
       pixWrite(name.c_str(), pixClipRectangle(original, fig.imageBB, NULL),
                IFF_PNG);
+    }
+  }
+}
+
+void saveFiguresFullColorImage(std::vector<Figure> &figures, PIX *original,
+                      std::string prefix, int multidpi) {
+  for (Figure fig : figures) {
+    std::string name = prefix + "-" + getFigureTypeString(fig.type) + "-c" +
+                       std::to_string(fig.number) + ".png";
+    if (fig.imageBB != NULL) {
+
+      fig.imageBB->x *= multidpi;
+      fig.imageBB->y *= multidpi;
+      fig.imageBB->w *= multidpi;
+      fig.imageBB->h *= multidpi;
+
+      pixWrite(name.c_str(), pixClipRectangle(original, fig.imageBB, NULL),
+               IFF_PNG);
+
+      fig.imageBB->x /= multidpi;
+      fig.imageBB->y /= multidpi;
+      fig.imageBB->w /= multidpi;
+      fig.imageBB->h /= multidpi;
     }
   }
 }
