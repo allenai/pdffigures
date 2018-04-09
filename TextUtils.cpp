@@ -128,7 +128,7 @@ DocumentStatistics::DocumentStatistics(std::vector<TextPage *> &textPages,
       }
     }
 
-    if (i > 0 and topLine > 0) {
+    if (i > 0 and topLine != NULL) {
       if (botLine->getWords()->getNext() == NULL and
           regex_match(botLine->getWords()->getText()->getCString(),
                       integerRegex)) {
